@@ -119,7 +119,20 @@ class JSettlersServer:
 
             elif msg_args[0] == 'robber':
                 dice_values = [int(x) for x in msg_args[1].split(",")]
-                
+                my_settlements = [int(x) for x in msg_args[2].split(",")]
+                p2_settlements = [int(x) for x in msg_args[3].split(",")]
+                p3_settlements = [int(x) for x in msg_args[4].split(",")]
+                p4_settlements = [int(x) for x in msg_args[5].split(",")]
+                my_dev_cards = int(msg_args[6])
+                others_dev_cards = [int(x) for x in msg_args[7].split(",")]
+                my_res = int(msg_args[8])
+                others_res = [int(x) for x in msg_args[9].split(",")]
+                my_vp = int(msg_args[10])
+                others_vp = [int(x) for x in msg_args[11].split(",")]
+                robber_hexes = [int(x) for x in msg_args[12].split(",")]
+
+                feat_vector = np.array(dice_values + my_settlements + p2_settlements + p3_settlements + p4_settlements + [my_dev_cards] + others_dev_cards + [my_res] + others_res + [my_vp] + others_vp + robber_hexes)
+                return feat_vector
 
             return None
 

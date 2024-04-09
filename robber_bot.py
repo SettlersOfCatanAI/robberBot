@@ -65,7 +65,7 @@ def train():
     total_score = 0
 
     agent = Agent()
-    game = JSettlersServer("localhost", 2004, agent, timeout=120)
+    game = JSettlersServer("localhost", 2004, agent, timeout=120000)
     while True:
         feat_vector = game.get_message()
         if feat_vector is None:
@@ -123,10 +123,10 @@ def train():
         
             # state after action
             if stole_resource == 0:
-                new_state = np.array(feat_vector[0:107].toList() + [0 for i in range(19)])
+                new_state = np.array(feat_vector[0:107].tolist() + [0 for i in range(19)])
                 new_state[107 + action] = 1
             else:
-               new_state = np.array(feat_vector[0:107].toList() + [0 for i in range(19)])
+               new_state = np.array(feat_vector[0:107].tolist() + [0 for i in range(19)])
                new_state[107 + action] = 1
                new_state[100] = new_state[100] + 1
 
