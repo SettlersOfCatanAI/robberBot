@@ -71,7 +71,7 @@ def train():
     avg_placement = []
 
     agent = Agent()
-    game = JSettlersServer("localhost", 2004, agent, timeout=120)
+    game = JSettlersServer("localhost", 2004, agent, timeout=120000)
     while True:
         if agent.n_games >= NUM_GAMES:
             break
