@@ -7,6 +7,7 @@ from model import QTrainer, Linear_QNet
 MAX_MEMORY = 10000
 LR = 0.001
 BATCH_SIZE = 1000
+NUM_GAMES = 100000
 
 
 class Agent:
@@ -16,7 +17,7 @@ class Agent:
         self.gamma = 0
         self.action_list = []
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = Linear_QNet(126, 256, 19)
+        self.model = Linear_QNet(126, 80, 19)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def save_model(self, model_name='model.pth'):
@@ -46,9 +47,11 @@ class Agent:
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 19)
         else:
+            print("Using Model:")
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
+            robber_hexes = state[107:126]
             # change to find previous robber hex
             if move == state[-1]:
                 prediction[move] = -1
@@ -60,26 +63,40 @@ def train():
     from server import JSettlersServer
 
     # TODO: plot these as needed.
+    placements = [0, 0, 0, 0]
+    placement_history = deque(maxlen=10) #last 5 games
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
+    avg_placement = []
 
     agent = Agent()
     game = JSettlersServer("localhost", 2004, agent, timeout=120)
     while True:
+        if agent.n_games >= NUM_GAMES:
+            break
         feat_vector = game.get_message()
         if feat_vector is None:
             # print("Msg skipped: ")
             if game.final_place != -1:
+                agent.n_games += 1
                 reward = 0
                 if game.final_place == 1:
                     reward = 10
+                    placements[0] += 1
+                    placement_history.append(1)
                 elif game.final_place == 2:
                     reward = 5
+                    placements[1] += 1
+                    placement_history.append(2)
                 elif game.final_place == 3:
                     reward = -3
+                    placements[2] += 1
+                    placement_history.append(3)
                 elif game.final_place == 4:
                     reward = -6
+                    placements[3] += 1
+                    placement_history.append(4)
                 else:
                     print("game not finished yet")
 
@@ -89,12 +106,19 @@ def train():
                 print("Placed " + str(game.final_place))
 
                 agent.action_list.clear()
-                game.reset()
 
                 agent.train_long_memory()
                 print("Finished training long term memory")
+                agent.model.save()
 
                 agent.n_games += 1
+
+                placement_history.append(game.final_place)
+                avg_placement.append(sum(placement_history) / len(placement_history))
+                with open('placement_history.txt', 'a') as file:
+                    file.write(str(game.final_place) + '\n')
+
+                game.reset()
 
         else:
             cur_state = feat_vector
@@ -119,19 +143,20 @@ def train():
             or (player4_settlements[action] == 1 and other_players_resources[2] > 0):
                 stole_resource = 1
             
-            reward = 0.5 * (stole_resource - 0.3 * blocked_self)
+            reward += 0.5 * (stole_resource - 0.3 * blocked_self)
         
             # state after action
             if stole_resource == 0:
-                new_state = np.array(feat_vector[0:107].toList() + [0 for i in range(19)])
+                new_state = np.array(feat_vector[0:107].tolist() + [0 for i in range(19)])
                 new_state[107 + action] = 1
             else:
-               new_state = np.array(feat_vector[0:107].toList() + [0 for i in range(19)])
+               new_state = np.array(feat_vector[0:107].tolist() + [0 for i in range(19)])
                new_state[107 + action] = 1
                new_state[100] = new_state[100] + 1
 
 
             agent.action_list.append((cur_state, action, reward, new_state))
+            agent.train_short_memory(cur_state, action, reward, new_state)
 
 
 if __name__ == '__main__':
