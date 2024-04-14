@@ -126,7 +126,7 @@ def train():
             action = agent.get_action(feat_vector)
 
             print("Action: " + str(action))
-            reward = 0
+            reward = game.play_step('robber', action)
 
             # state before action
             my_settlements = feat_vector[19:38]

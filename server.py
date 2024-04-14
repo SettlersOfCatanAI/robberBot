@@ -102,12 +102,6 @@ class JSettlersServer:
                 my_vp = int(msg_args[10])
                 others_vp = [int(x) for x in msg_args[11].split(",")]
                 robber_hexes = [int(x) for x in msg_args[12].split(",")]
-<<<<<<< HEAD
-=======
-
-                feat_vector = np.array(dice_values + my_settlements + p2_settlements + p3_settlements + p4_settlements + [my_dev_cards] + others_dev_cards + [my_res] + others_res + [my_vp] + others_vp + robber_hexes)
-                return feat_vector
->>>>>>> 4b8a3dff36b9cea3508eaf337596217d4aed44ad
 
                 feat_vector = np.array(dice_values + my_settlements + p2_settlements + p3_settlements + p4_settlements + [my_dev_cards] + others_dev_cards + [my_res] + others_res + [my_vp] + others_vp + robber_hexes)
                 return feat_vector
